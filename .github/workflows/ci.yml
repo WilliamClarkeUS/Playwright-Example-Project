@@ -1,0 +1,62 @@
+# GitHub Actions pipeline: runs the Playwright tests automatically.
+#
+#  - Pull request  -> fast smoke tests only (quick feedback)
+#  - Nightly 06:00 UTC -> full suite (smoke + regression)
+#  - Manual run    -> choose the environment (BASE_URL) and the tag to run
+name: Playwright tests
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  schedule:
+    - cron: '0 6 * * *'
+  workflow_dispatch:
+    inputs:
+      base_url:
+        description: 'Site to test'
+        default: 'https://www.unitestudents.com'
+      grep:
+        description: 'Tag filter, e.g. @smoke (blank = everything)'
+        default: ''
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20          # never let a hung run block the queue
+    env:
+      # The ONLY environment-specific setting. Secrets would go in repo secrets, never in this file.
+      BASE_URL: ${{ inputs.base_url || 'https://www.unitestudents.com' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm              # caches node_modules between runs for speed
+
+      - run: npm ci               # exact versions from package-lock.json
+
+      - run: npx playwright install --with-deps chromium
+
+      # Choose what to run: PRs get smoke only, schedule/manual get everything.
+      - name: Run tests
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            npx playwright test --grep @smoke
+          elif [ -n "${{ inputs.grep }}" ]; then
+            npx playwright test --grep "${{ inputs.grep }}"
+          else
+            npx playwright test
+          fi
+
+      # always() = upload the evidence even when tests fail: that is when you need it.
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            results/
+          retention-days: 14
