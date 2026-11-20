@@ -1,5 +1,6 @@
 import { test, expect } from '@playwright/test';
 import { HomePage } from '../pages/HomePage';
+import { homepage, bristol as bristolData } from '../data/testData';
 
 // Tags (@smoke, @regression) let the pipeline choose which tests to run:
 //   npx playwright test --grep @smoke
@@ -9,8 +10,8 @@ test.describe('Homepage', () => {
     const home = new HomePage(page);
     await home.open();
 
-    await expect(page).toHaveTitle(/Student Accommodation/i);
-    await expect(home.heading).toContainText('Find your perfect student home');
+    await expect(page).toHaveTitle(homepage.titlePattern);
+    await expect(home.heading).toContainText(homepage.headingText);
   });
 
   test('shows the main navigation and search options @smoke', async ({ page }) => {
@@ -29,6 +30,6 @@ test.describe('Homepage', () => {
 
     const bristol = await home.goToBristol();
 
-    await expect(bristol.heading).toContainText('BRISTOL', { ignoreCase: true });
+    await expect(bristol.heading).toContainText(bristolData.headingText, { ignoreCase: true });
   });
 });

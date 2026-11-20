@@ -27,6 +27,7 @@ pages/                        # Page Object Model: one class per page
   HomePage.ts                 #   homepage locators and actions
   CityPage.ts                 #   city page (takes a city slug, so it works for any city)
   components/CookieBanner.ts  #   reusable UI piece used by every page
+data/testData.ts              # Static test data (city slug, expected title and heading)
 tests/                        # Readable tests: business steps, no locators in sight
   home.spec.ts
   bristol.spec.ts

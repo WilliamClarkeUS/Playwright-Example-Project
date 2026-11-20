@@ -1,17 +1,18 @@
 import { test, expect } from '@playwright/test';
 import { CityPage } from '../pages/CityPage';
+import { bristol as city } from '../data/testData';
 
 test.describe('Bristol city page', () => {
   test('loads with the Bristol heading and title @smoke', async ({ page }) => {
-    const bristol = new CityPage(page, 'bristol');
+    const bristol = new CityPage(page, city.slug);
     await bristol.open();
 
-    await expect(page).toHaveTitle(/Bristol/i);
-    await expect(bristol.heading).toContainText('BRISTOL', { ignoreCase: true });
+    await expect(page).toHaveTitle(city.titlePattern);
+    await expect(bristol.heading).toContainText(city.headingText, { ignoreCase: true });
   });
 
   test('lists residences with filters and sorting @smoke', async ({ page }) => {
-    const bristol = new CityPage(page, 'bristol');
+    const bristol = new CityPage(page, city.slug);
     await bristol.open();
 
     await expect(bristol.filterBar).toBeVisible();
@@ -23,11 +24,11 @@ test.describe('Bristol city page', () => {
   });
 
   test('user can open a Bristol residence from the list @regression', async ({ page }) => {
-    const bristol = new CityPage(page, 'bristol');
+    const bristol = new CityPage(page, city.slug);
     await bristol.open();
 
     await bristol.openFirstProperty();
 
-    await expect(page).toHaveURL(/\/student-accommodation\/bristol\/.+/);
+    await expect(page).toHaveURL(new RegExp(`/student-accommodation/${city.slug}/.+`));
   });
 });
